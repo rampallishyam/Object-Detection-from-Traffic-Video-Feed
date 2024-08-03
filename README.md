@@ -1,4 +1,4 @@
-# Bosch Internship Project
+# Traffic Detection and Travel Time Estimation
 
 This project implements computer vision algorithms to detect, track, and count vehicles using YOLOv8 and ByteTrack. The Indian Driving Dataset (IDD) is utilized for training and evaluation. The goal of this project is to provide accurate vehicle monitoring and insights for traffic management.
 
