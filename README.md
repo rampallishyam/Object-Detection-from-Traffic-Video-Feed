@@ -28,9 +28,9 @@ This project aims to leverage state-of-the-art computer vision techniques to add
 
 1. Clone this repository:
 
-git clone https://github.com/AnupN29/Bosch_Internship_Project.git
+git clone https://github.com/rampallishyam/vehicle-detection-travel-time-estimation.git
 
-cd Bosch_Internship_Project
+cd vehicle-detection-travel-time-estimation
 
 2. Set up your Python environment:
 
