@@ -1,24 +1,21 @@
 import argparse
 import os
 import random
-
-from utils.image_transform import *
-from utils.xml2yolo import *
+from utils.image_transform import img_transform
+from utils.xml2yolo import xml2yolo
 
 BASE_PATH = "D:/Anup/MICP"
-# Paths to Orginal IDD Dataset
-imgs_path = os.path.join(BASE_PATH, "_/_old/idd-detection/IDD_Detection/JPEGImages")
-labels_path = os.path.join(BASE_PATH, "_/_old/idd-detection/IDD_Detection/Annotations") 
-
-# Paths to New IDD Dataset
-train_path = os.path.join(BASE_PATH, "dataset/train")
-val_path = os.path.join(BASE_PATH, "dataset/val")
+IMGS_PATH = os.path.join(BASE_PATH, "_/_old/idd-detection/IDD_Detection/JPEGImages")
+LABELS_PATH = os.path.join(BASE_PATH, "_/_old/idd-detection/IDD_Detection/Annotations")
+TRAIN_PATH = os.path.join(BASE_PATH, "dataset/train")
+VAL_PATH = os.path.join(BASE_PATH, "dataset/val")
 
 def create_dataset():
-    parser = argparse.ArgumentParser(description='create_dataset')
-    parser.add_argument('--imgs_path', default=imgs_path, help='img_path_old')
-    parser.add_argument('--labels_path', default=labels_path, help='labels_path_old')
-    parser.add_argument('--split', default=0.9, help='split')
+    """Create a YOLO-formatted dataset from the IDD dataset, splitting into train/val sets."""
+    parser = argparse.ArgumentParser(description="Create YOLO dataset from IDD")
+    parser.add_argument("--imgs_path", default=IMGS_PATH, help="Path to images")
+    parser.add_argument("--labels_path", default=LABELS_PATH, help="Path to labels")
+    parser.add_argument("--split", default=0.9, type=float, help="Train/val split ratio")
     args = parser.parse_args()
 
     primary_folders = [name for name in os.listdir(args.imgs_path) if os.path.isdir(os.path.join(args.imgs_path, name))]
@@ -29,64 +26,48 @@ def create_dataset():
 
         for secondary_folder in secondary_folders:
             secondary_folder_path = os.path.join(primary_folder_path, secondary_folder)
-
-            image_files = [name for name in os.listdir(secondary_folder_path) if name.endswith(('.jpg', '.jpeg', '.png', '.gif'))]
-            train_index = int(args.split*len(image_files))
+            image_files = [name for name in os.listdir(secondary_folder_path) if name.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))]
+            train_index = int(args.split * len(image_files))
             random.shuffle(image_files)
 
-            # training dataset 
+            # Training dataset
             for file_name in image_files[:train_index]:
                 file_path = os.path.join(secondary_folder_path, file_name)
-                if os.path.exists(os.path.join(train_path, "images")) and file_name in os.listdir(os.path.join(train_path, "images")):
-                     pass
-                elif os.path.exists(os.path.join(val_path, "images")) and file_name in os.listdir(os.path.join(val_path, "images")):
-                    pass
-                else:
-                    #img transform
-                    file_name, file_ext = os.path.splitext(file_name)
-                    transformed_image = img_transform(file_path,mode='train')
-                    
+                if (os.path.exists(os.path.join(TRAIN_PATH, "images")) and file_name in os.listdir(os.path.join(TRAIN_PATH, "images"))) or \
+                   (os.path.exists(os.path.join(VAL_PATH, "images")) and file_name in os.listdir(os.path.join(VAL_PATH, "images"))):
+                    continue
+                file_base, file_ext = os.path.splitext(file_name)
+                transformed_image = img_transform(file_path, mode="train")
+                xml_file = os.path.join(args.labels_path, primary_folder, secondary_folder, file_base + ".xml")
+                output_txt = os.path.join(TRAIN_PATH, "labels", file_base + ".txt")
+                try:
+                    xml2yolo(xml_file, output_txt)
+                    transformed_image.save(os.path.join(TRAIN_PATH, "images", file_base + file_ext))
+                except Exception as e:
+                    exp_txt = os.path.join(BASE_PATH, "err", file_base + ".txt")
+                    with open(exp_txt, "w") as txt_file:
+                        txt_file.write(f"ERROR: {output_txt}\n{e}")
 
-                    #labels
-                    xml_file = os.path.join(args.labels_path,primary_folder,secondary_folder, file_name+'.xml')
-                    output_txt = os.path.join(train_path,"labels",file_name+".txt")
-                    try:
-                        xml2yolo(xml_file, output_txt)
-                        transformed_image.save(os.path.join(train_path,"images", file_name + file_ext))
-                    except:
-                        exp_txt = os.path.join(BASE_PATH,"err",file_name+".txt")
-                        with open(exp_txt, 'w') as txt_file:
-                             txt_file.write('ERROR: '+ output_txt)
-
-
-            # validation dataset 
+            # Validation dataset
             for file_name in image_files[train_index:]:
                 file_path = os.path.join(secondary_folder_path, file_name)
-                if os.path.exists(os.path.join(train_path, "images")) and file_name in os.listdir(os.path.join(train_path, "images")):
-                     pass
-                elif os.path.exists(os.path.join(val_path, "images")) and file_name in os.listdir(os.path.join(val_path, "images")):
-                    pass
-                else:
-                    #img transform
-                    file_name, file_ext = os.path.splitext(file_name)
-                    transformed_image = img_transform(file_path,mode='val')
-                    
+                if (os.path.exists(os.path.join(TRAIN_PATH, "images")) and file_name in os.listdir(os.path.join(TRAIN_PATH, "images"))) or \
+                   (os.path.exists(os.path.join(VAL_PATH, "images")) and file_name in os.listdir(os.path.join(VAL_PATH, "images"))):
+                    continue
+                file_base, file_ext = os.path.splitext(file_name)
+                transformed_image = img_transform(file_path, mode="val")
+                xml_file = os.path.join(args.labels_path, primary_folder, secondary_folder, file_base + ".xml")
+                output_txt = os.path.join(VAL_PATH, "labels", file_base + ".txt")
+                try:
+                    xml2yolo(xml_file, output_txt)
+                    transformed_image.save(os.path.join(VAL_PATH, "images", file_base + file_ext))
+                except Exception as e:
+                    exp_txt = os.path.join(BASE_PATH, "err", file_base + ".txt")
+                    with open(exp_txt, "w") as txt_file:
+                        txt_file.write(f"ERROR: {output_txt}\n{e}")
 
-                    #labels
-                    xml_file = os.path.join(args.labels_path,primary_folder,secondary_folder, file_name+'.xml')
-                    output_txt = os.path.join(val_path,"labels",file_name+".txt")
-                    try:
-                        xml2yolo(xml_file, output_txt)
-                        transformed_image.save(os.path.join(val_path,"images", file_name + file_ext))
 
-                    except:
-                        exp_txt = os.path.join(BASE_PATH,"err",file_name+".txt")
-                        with open(exp_txt, 'w') as txt_file:
-                             txt_file.write('ERROR: '+ output_txt)
-
-                
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     create_dataset()
     print("DONE")
 

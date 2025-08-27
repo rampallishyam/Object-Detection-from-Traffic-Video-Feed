@@ -1,30 +1,35 @@
-from __future__ import annotations
 
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Tuple
 import numpy as np
 
 @dataclass
 class Point:
+    """A 2D point."""
     x: float
     y: float
 
     def as_xy_int_tuple(self) -> Tuple[int, int]:
+        """Return (x, y) as integer tuple."""
         return int(self.x), int(self.y)
 
     def as_xy_float_tuple(self) -> Tuple[float, float]:
+        """Return (x, y) as float tuple."""
         return self.x, self.y
-
 
 @dataclass
 class Vector:
+    """A vector from start to end point."""
     start: Point
     end: Point
 
-    def magnitude(self):
-        return np.sqrt(((self.end.x - self.start.x)**2) + ((self.end.y - self.start.y)**2))
+    def magnitude(self) -> float:
+        """Return the magnitude of the vector."""
+        return np.sqrt((self.end.x - self.start.x) ** 2 + (self.end.y - self.start.y) ** 2)
 
     def is_in(self, point: Point) -> bool:
+        """Check if a point is on the left side of the vector (for line crossing)."""
         v1 = Vector(self.start, self.end)
         v2 = Vector(self.start, point)
         cross_product = (v1.end.x - v1.start.x) * (v2.end.y - v2.start.y) - (
@@ -32,9 +37,9 @@ class Vector:
         ) * (v2.end.x - v2.start.x)
         return cross_product < 0
 
-
 @dataclass
 class Rect:
+    """A rectangle defined by top-left (x, y), width, and height."""
     x: float
     y: float
     width: float
@@ -48,7 +53,8 @@ class Rect:
     def bottom_right(self) -> Point:
         return Point(x=self.x + self.width, y=self.y + self.height)
 
-    def pad(self, padding) -> Rect:
+    def pad(self, padding: float) -> Rect:
+        """Return a new Rect padded by the given amount."""
         return Rect(
             x=self.x - padding,
             y=self.y - padding,
