@@ -6,7 +6,7 @@ from ultralytics import YOLO
 def main():
     """Train a YOLOv8 model on the specified dataset."""
     model = YOLO("yolov8m.pt")
-    model.train(data="D:/Anup/MICP/dataset/data.yaml", epochs=100, imgsz=640, device=0)
+    model.train(data="/data.yaml", epochs=100, imgsz=640, device=0)
     print("DONE TRAINING")
 
 if __name__ == "__main__":
