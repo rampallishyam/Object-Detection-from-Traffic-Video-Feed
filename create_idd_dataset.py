@@ -4,7 +4,7 @@ import random
 from utils.image_transform import img_transform
 from utils.xml2yolo import xml2yolo
 
-BASE_PATH = "D:/Anup/MICP"
+BASE_PATH = "/"
 IMGS_PATH = os.path.join(BASE_PATH, "_/_old/idd-detection/IDD_Detection/JPEGImages")
 LABELS_PATH = os.path.join(BASE_PATH, "_/_old/idd-detection/IDD_Detection/Annotations")
 TRAIN_PATH = os.path.join(BASE_PATH, "dataset/train")
