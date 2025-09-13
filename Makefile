@@ -18,7 +18,15 @@ help:
 	@echo "  run            - Run main pipeline (customizable via MODEL/VIDEO/INTERVAL/CLASS_IDS)"
 	@echo "  smoke-imports  - Quick import check for core modules"
 
-install:
+create-env:
+	python3 -m venv .venv
+
+install: create-env
+	@# Ensure Poetry is available, then install project deps
+	@if ! command -v poetry >/dev/null 2>&1; then \
+		echo "Installing Poetry..."; \
+		curl -sSL https://install.python-poetry.org | python3 -; \
+	fi
 	poetry install
 
 env:
@@ -50,10 +58,4 @@ run:
 		--class_ids $(CLASS_IDS)
 
 smoke-imports:
-	poetry run python - <<'PY'
-from traffic_od.config import AppConfig
-from traffic_od.detector import YoloV8Detector
-from traffic_od.tracker import ByteTrackAdapter, TrackerConfig
-from traffic_od.pipeline import VideoPipeline
-print('Core module imports: OK')
-PY
+	poetry run python -c "from traffic_od.config import AppConfig; from traffic_od.detector import YoloV8Detector; from traffic_od.tracker import ByteTrackAdapter, TrackerConfig; from traffic_od.pipeline import VideoPipeline; print('Core module imports: OK')"
